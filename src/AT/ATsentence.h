@@ -29,12 +29,6 @@ struct ENU
     float u;
 };
 
-struct Position
-{
-    XYZ xyz;
-    ENU enu;
-};
-
 struct RPY
 {
     float roll;
@@ -45,10 +39,11 @@ struct RPY
 struct UsbllongMsg
 {
     float current_time;
-    float meas_time;
+    float measurement_time;
     int remote_address;
-    Position pose;
-    RPY orientation;
+    XYZ xyz;
+    ENU enu;
+    RPY rpy;
     float propogation_time;
     int rssi;
     int integrity;

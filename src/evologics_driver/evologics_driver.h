@@ -22,6 +22,8 @@
 #include "goby/time/system_clock.h"                 // for SystemClock, Sys...
 
 #include "../AT/ATsentence.h"
+#include <boost/regex.hpp>
+#include <boost/algorithm/string_regex.hpp>
 
 namespace dccl
 {

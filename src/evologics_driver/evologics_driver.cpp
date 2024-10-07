@@ -111,8 +111,6 @@ void goby::acomms::EvologicsDriver::startup(const protobuf::DriverConfig& cfg)
 
             break;
 
-        default:
-            break;
     }
 
     modem_start(driver_cfg_);
@@ -262,28 +260,34 @@ void goby::acomms::EvologicsDriver::do_work()
 {
 
     // read any incoming messages from the modem
-    std::string in;
-    while (modem_read(&in))
+    std::string raw_str;
+    while (modem_read(&raw_str))
     {
-        boost::trim(in);
+        boost::trim(raw_str);
 
-        glog.is(DEBUG1) && glog << group(glog_out_group()) << "Received: " << in.c_str() << std::endl;
-
+        glog.is(DEBUG1) && glog << group(glog_out_group()) << "Received: " << raw_str.c_str() << std::endl;
 
         // try to handle the received message, posting appropriate signals
         try
         {
+            std::string split_str = "+++";
+            size_t split_index = raw_str.find(split_str);
 
-            if(in.substr(0,3) == "+++")
+            //if there are no AT messages in the return then there are only messages
+            if(split_index == std::string::npos)
             {
-                // process return from an AT message
-                
-                process_at_receive(in);
+                process_receive(raw_str);
             }
+            //starts with an AT message (could be binary mixed in after???)
+            if(split_index == 0)
+            {
+                process_at_receive(raw_str);
+            }
+            //raw contains an AT message but there is some binary before it
             else
             {
-                // process return from burst data
-                process_receive(in);
+                process_receive(raw_str.substr(0,split_index));
+                process_at_receive(raw_str.substr(split_index));
             }
         }
         catch (std::exception& e)
@@ -309,17 +313,17 @@ void goby::acomms::EvologicsDriver::process_at_receive(const std::string& in)
         UsbllongMsg usbl;
 
         usbl.current_time = std::stof(parse.fields[0]);
-        usbl.meas_time = std::stof(parse.fields[1]);
+        usbl.measurement_time = std::stof(parse.fields[1]);
         usbl.remote_address = std::stoi(parse.fields[2]);
-        usbl.pose.xyz.x = std::stof(parse.fields[3]);
-        usbl.pose.xyz.y = std::stof(parse.fields[4]);
-        usbl.pose.xyz.z = std::stof(parse.fields[5]);
-        usbl.pose.enu.e = std::stof(parse.fields[6]);
-        usbl.pose.enu.n = std::stof(parse.fields[7]);
-        usbl.pose.enu.u = std::stof(parse.fields[8]);
-        usbl.orientation.roll = std::stof(parse.fields[9]);
-        usbl.orientation.pitch = std::stof(parse.fields[10]);
-        usbl.orientation.yaw = std::stof(parse.fields[11]);
+        usbl.xyz.x = std::stof(parse.fields[3]);
+        usbl.xyz.y = std::stof(parse.fields[4]);
+        usbl.xyz.z = std::stof(parse.fields[5]);
+        usbl.enu.e = std::stof(parse.fields[6]);
+        usbl.enu.n = std::stof(parse.fields[7]);
+        usbl.enu.u = std::stof(parse.fields[8]);
+        usbl.rpy.roll = std::stof(parse.fields[9]);
+        usbl.rpy.pitch = std::stof(parse.fields[10]);
+        usbl.rpy.yaw = std::stof(parse.fields[11]);
         usbl.propogation_time = std::stof(parse.fields[12]);
         usbl.rssi = std::stoi(parse.fields[13]);
         usbl.integrity = std::stoi(parse.fields[14]);
