@@ -18,7 +18,7 @@ std::string ATsentence::encode(const AtType &at_sentence)
 
     message << "+++AT" << at_sentence.command;
 
-    for (int i = 0; i < at_sentence.fields.size(); i++)
+    for (size_t i = 0; i < at_sentence.fields.size(); i++)
     {
         message << "," << at_sentence.fields.at(i);
     }
