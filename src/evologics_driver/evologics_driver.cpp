@@ -31,9 +31,6 @@
 #include <boost/date_time/posix_time/ptime.hpp>      // for ptime
 #include <boost/date_time/time.hpp>                  // for base_t...
 #include <boost/signals2/signal.hpp>                 // for signal
-#include <dccl/binary.h>                             // for b64_de...
-#include <dccl/codec.h>                              // for Codec
-#include <dccl/common.h>                             // for operat...
 
 #include "goby/acomms/acomms_constants.h"                // for BROADC...
 #include "goby/acomms/protobuf/modem_driver_status.pb.h" // for ModemD...
@@ -111,6 +108,8 @@ void goby::acomms::EvologicsDriver::startup(const protobuf::DriverConfig& cfg)
 
             break;
 
+        default:
+            break;
     }
 
     modem_start(driver_cfg_);
