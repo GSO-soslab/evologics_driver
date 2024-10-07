@@ -111,6 +111,8 @@ void goby::acomms::EvologicsDriver::startup(const protobuf::DriverConfig& cfg)
 
             break;
 
+        default:
+            break;
     }
 
     modem_start(driver_cfg_);

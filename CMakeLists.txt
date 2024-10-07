@@ -16,14 +16,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
 find_package(Protobuf REQUIRED)
 find_package(goby 3.1 REQUIRED)
 
-include_directories(
-  src/evologics_driver
-  src/AT
-)
 
 add_library(evologics_driver SHARED
   src/evologics_driver/evologics_driver.cpp
   src/AT/ATsentence.cpp
+)
+
+target_include_directories(evologics_driver PUBLIC
+    src/AT 
+    src/evologics_driver
 )
 
 target_link_libraries(evologics_driver LINK_PUBLIC
