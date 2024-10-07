@@ -1,3 +1,10 @@
+/*
+    Author: Jason Miller, jason_miller@uri.edu
+    Year: 2023
+
+    Copyright (C) 2023 Smart Ocean Systems Laboratory
+*/
+
 #ifndef GOBY_ACOMMS_MODEMDRIVER_EVO_DRIVER_H
 #define GOBY_ACOMMS_MODEMDRIVER_EVO_DRIVER_H
 

@@ -1,3 +1,9 @@
+/*
+    Author: Jason Miller, jason_miller@uri.edu
+    Year: 2023
+
+    Copyright (C) 2023 Smart Ocean Systems Laboratory
+*/
 
 #include <algorithm>   // for copy, max
 #include <cerrno>      // for errno
