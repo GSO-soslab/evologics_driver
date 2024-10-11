@@ -440,7 +440,7 @@ void goby::acomms::EvologicsDriver::evologics_write(const std::string &s)
                             
     signal_raw_outgoing(raw_msg);
 
-    modem_write(raw_msg.raw() + "\r\n");
+    modem_write(raw_msg.raw() + "\n\r");
 }
 
 void goby::acomms::EvologicsDriver::signal_receive_and_clear(protobuf::ModemTransmission* message)
