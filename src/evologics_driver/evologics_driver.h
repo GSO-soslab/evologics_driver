@@ -21,7 +21,8 @@
 #include "goby/acomms/protobuf/modem_message.pb.h"  // for ModemTransmission
 #include "goby/time/system_clock.h"                 // for SystemClock, Sys...
 
-#include "../AT/ATsentence.h"
+#include "HayesAtEncoder.h"
+#include "HayesAtDecoder.h"
 #include <boost/regex.hpp>
 #include <boost/algorithm/string_regex.hpp>
 
@@ -40,9 +41,45 @@ namespace acomms
 class EvologicsDriver : public ModemDriverBase
 {
   public:
+      struct XYZ
+  {
+      float x;
+      float y;
+      float z;
+  };
+
+  struct ENU
+  {
+      float e;
+      float n;
+      float u;
+  };
+
+  struct RPY
+  {
+      float roll;
+      float pitch;
+      float yaw;
+  };
+
+  struct UsbllongMsg
+  {
+      float current_time;
+      float measurement_time;
+      int remote_address;
+      XYZ xyz;
+      ENU enu;
+      RPY rpy;
+      float propogation_time;
+      int rssi;
+      int integrity;
+      float accuracy;
+  };
+
 
     typedef std::function<void(UsbllongMsg)> UsblCallback;
     UsblCallback usbl_callback_;
+
 
     /// \brief Default constructor.
     EvologicsDriver();
@@ -100,13 +137,12 @@ class EvologicsDriver : public ModemDriverBase
 
     void set_usbl_callback(UsblCallback c) { usbl_callback_  = c;}
 
-    ATsentence at_sentence;
+
 
     // output
-    void try_send(); // try to send another NMEA message to the modem
-    void append_to_write_queue(const AtType s); // add a message
     void evologics_write(const std::string &s); // actually write a message
-    void data_transmission(protobuf::ModemTransmission* msg);
+    void on_decode(const hayes::AtMsg msg);
+    void data_transmission(protobuf::ModemTransmission *msg);
 
     // input
     void process_receive(const std::string& in); // parse a receive message and call proper method
@@ -119,6 +155,7 @@ class EvologicsDriver : public ModemDriverBase
   private:
     // for the serial connection
 
+
     std::string DEFAULT_TCP_SERVER = "192.168.0.209";
     int DEFAULT_TCP_PORT = 9200;
     int DEFAULT_BAUD = 19200;
@@ -128,10 +165,6 @@ class EvologicsDriver : public ModemDriverBase
 
     // all startup configuration (DriverConfig defined in acomms_driver_base.proto and extended in acomms_mm_driver.proto)
     protobuf::DriverConfig driver_cfg_;
-
-    // deque for outgoing messages to the modem, we queue them up and send
-    // as the modem acknowledges them
-    std::deque<AtType> out_;
 
     // set after the startup routines finish once. we can't startup on instantiation because
     // the base class sets some of our references (from the MOOS file)
@@ -143,6 +176,11 @@ class EvologicsDriver : public ModemDriverBase
     std::unique_ptr<dccl::Codec> dccl_;
     // DCCL requires full memory barrier...
     static std::mutex dccl_mutex_;
+
+    hayes::AtEncoder encoder_;
+    hayes::AtDecoder decoder_;
+
+
 
 };
 } // namespace acomms

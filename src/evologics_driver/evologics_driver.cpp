@@ -6,7 +6,7 @@
 #include <cstdlib>     // for abs
 #include <cstring>     // for strerror
 #include <iterator>    // for ostrea...
-#include <list>        // for operat...
+#include <list>        // for operat_...
 #include <locale>      // for locale
 #include <memory>      // for allocator
 #include <sstream>     // for basic_...
@@ -27,7 +27,7 @@
 #include <boost/signals2/signal.hpp>                 // for signal
 #include <dccl/binary.h>                             // for b64_de...
 #include <dccl/codec.h>                              // for Codec
-#include <dccl/common.h>                             // for operat...
+#include <dccl/common.h>                             // for operat_...
 
 #include "goby/acomms/acomms_constants.h"                // for BROADC...
 #include "goby/acomms/protobuf/modem_driver_status.pb.h" // for ModemD...
@@ -37,11 +37,11 @@
 #include "goby/util/binary.h"                            // for hex_de...
 #include "goby/util/debug_logger/flex_ostream.h"         // for FlexOs...
 #include "goby/util/debug_logger/flex_ostreambuf.h"      // for DEBUG1
-#include "goby/util/debug_logger/logger_manipulators.h"  // for operat...
+#include "goby/util/debug_logger/logger_manipulators.h"  // for operat_...
 #include "goby/util/debug_logger/term_color.h"           // for magenta
 #include "goby/util/linebasedcomms/interface.h"          // for LineBa...
 #include "goby/util/linebasedcomms/serial_client.h"      // for Serial...
-#include "goby/util/protobuf/io.h"                       // for operat...
+#include "goby/util/protobuf/io.h"                       // for operat_...
 
 #include "goby/acomms/modemdriver/driver_exception.h" // for ModemD...
 
@@ -55,11 +55,19 @@ using namespace goby::util::tcolor;
 using namespace goby::util::logger;
 using namespace goby::util::logger_lock;
 
-const std::string goby::acomms::EvologicsDriver::SERIAL_DELIMITER = "\r";
+const std::string goby::acomms::EvologicsDriver::SERIAL_DELIMITER = "\n";
 const std::string goby::acomms::EvologicsDriver::ETHERNET_DELIMITER = "\n";
 
 goby::acomms::EvologicsDriver::EvologicsDriver()
 {
+
+    encoder_.set_transmit_callback(
+        std::bind(&EvologicsDriver::evologics_write, this, std::placeholders::_1));
+
+    decoder_.set_decode_callback(
+        std::bind(&EvologicsDriver::on_decode, this, std::placeholders::_1));
+
+    decoder_.decode("+++AT:122:USBLLONG,2738.756694,2738.520424,2,-0.2055,-0.6097,-0.8315,0.8703,-0.5578,0.1920,-1.1680,-0.1894,1.2411,701,-58,161,0.0060\n");
 
 }
 
@@ -119,10 +127,9 @@ void goby::acomms::EvologicsDriver::startup(const protobuf::DriverConfig& cfg)
 
 void goby::acomms::EvologicsDriver::clear_buffer()
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "Z4";
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::shutdown()
@@ -133,122 +140,108 @@ void goby::acomms::EvologicsDriver::shutdown()
 
 void goby::acomms::EvologicsDriver::set_source_level(int source_level)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!L" + std::to_string(source_level);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_source_control(int source_control)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!LC" + std::to_string(source_control);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 
 }
 
 void goby::acomms::EvologicsDriver::set_gain(int gain)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!G" + std::to_string(gain);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_carrier_waveform_id(int id)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!C" + std::to_string(id);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_local_address(int address)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!AL" + std::to_string(address);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_remote_address(int address)
 {
-    AtType msg;
-    
+    hayes::AtMsg msg;
     msg.command = "!AR" + std::to_string(address);
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_highest_address(int address)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!AM" + std::to_string(address);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_cluster_size(int size)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!ZC" + std::to_string(size);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_packet_time(int time)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!ZP" + std::to_string(time);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_retry_count(int count)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!RC" + std::to_string(count);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_retry_timeout(int time)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!RT" + std::to_string(time);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_keep_online_count(int count)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!KO" + std::to_string(count);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_idle_timeout(int time)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!ZI" + std::to_string(time);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_channel_protocol_id(int id)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!ZS" + std::to_string(id);
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 void goby::acomms::EvologicsDriver::set_sound_speed(int speed)
 {
-    AtType msg;
+    hayes::AtMsg msg;
     msg.command = "!CA" + std::to_string(speed);
-
-    append_to_write_queue(msg);
+    encoder_.encode(msg);
 }
 
 
@@ -259,7 +252,6 @@ void goby::acomms::EvologicsDriver::do_work()
     std::string raw_str;
     while (modem_read(&raw_str))
     {
-        boost::trim(raw_str);
 
         glog.is(DEBUG1) && glog << group(glog_out_group()) << "Received: " << raw_str.c_str() << std::endl;
 
@@ -269,21 +261,15 @@ void goby::acomms::EvologicsDriver::do_work()
             std::string split_str = "+++";
             size_t split_index = raw_str.find(split_str);
 
-            //if there are no AT messages in the return then there are only messages
+            //if it is not an AT message, then it is comms data
             if(split_index == std::string::npos)
             {
                 process_receive(raw_str);
             }
-            //starts with an AT message (could be binary mixed in after???)
-            if(split_index == 0)
-            {
-                process_at_receive(raw_str);
-            }
-            //raw contains an AT message but there is some binary before it
+            //it is an AT message
             else
             {
-                process_receive(raw_str.substr(0,split_index));
-                process_at_receive(raw_str.substr(split_index));
+                decoder_.decode(raw_str);
             }
         }
         catch (std::exception& e)
@@ -293,43 +279,7 @@ void goby::acomms::EvologicsDriver::do_work()
         }   
     }
 
-}
-
-void goby::acomms::EvologicsDriver::process_at_receive(const std::string& in)
-{
-    protobuf::ModemRaw raw_msg;
-        raw_msg.set_raw(in);
-
-    signal_raw_incoming(raw_msg);
-
-    AtType parse = at_sentence.decode(in);
-
-    if(parse.command == "USBLLONG")
-    {
-        UsbllongMsg usbl;
-
-        usbl.current_time = std::stof(parse.fields[0]);
-        usbl.measurement_time = std::stof(parse.fields[1]);
-        usbl.remote_address = std::stoi(parse.fields[2]);
-        usbl.xyz.x = std::stof(parse.fields[3]);
-        usbl.xyz.y = std::stof(parse.fields[4]);
-        usbl.xyz.z = std::stof(parse.fields[5]);
-        usbl.enu.e = std::stof(parse.fields[6]);
-        usbl.enu.n = std::stof(parse.fields[7]);
-        usbl.enu.u = std::stof(parse.fields[8]);
-        usbl.rpy.roll = std::stof(parse.fields[9]);
-        usbl.rpy.pitch = std::stof(parse.fields[10]);
-        usbl.rpy.yaw = std::stof(parse.fields[11]);
-        usbl.propogation_time = std::stof(parse.fields[12]);
-        usbl.rssi = std::stoi(parse.fields[13]);
-        usbl.integrity = std::stoi(parse.fields[14]);
-        usbl.accuracy = std::stof(parse.fields[15]);
-
-        usbl_callback_(usbl);
-    }
-
-}
-    
+}   
 
 void goby::acomms::EvologicsDriver::process_receive(const std::string& s)
 {
@@ -344,28 +294,6 @@ void goby::acomms::EvologicsDriver::process_receive(const std::string& s)
     
 
 } 
-
-void goby::acomms::EvologicsDriver::append_to_write_queue(const AtType at)
-{
-    out_.push_back(at);
-    try_send(); // try to push it now without waiting for the next call to do_work();
-}
-
-void goby::acomms::EvologicsDriver::try_send()
-{
-    if (out_.empty())
-        return;
-
-    const AtType msg = out_.front();
-
-    const std::string send = at_sentence.encode(msg);
-
-    std::cout << "Writing to driver: " << send.c_str() << std::endl;
-
-    evologics_write(send);
-
-    out_.pop_front();
-}
 
 void goby::acomms::EvologicsDriver::handle_initiate_transmission(const protobuf::ModemTransmission& msg)
 {
@@ -411,7 +339,7 @@ void goby::acomms::EvologicsDriver::data_transmission(protobuf::ModemTransmissio
 
     //do we need to set max frames and bytes for data mode?
     msg->set_max_num_frames(1);
-    msg->set_max_frame_bytes(64);
+    msg->set_max_frame_bytes(500);
 
     if (!(msg->frame_size() == 0 || msg->frame(0).empty()))
     {
@@ -437,13 +365,39 @@ void goby::acomms::EvologicsDriver::evologics_write(const std::string &s)
                             
     signal_raw_outgoing(raw_msg);
 
-    if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_SERIAL)
+    modem_write(raw_msg.raw()+"\r\n");
+
+
+}
+
+void goby::acomms::EvologicsDriver::on_decode(const hayes::AtMsg msg)
+{
+
+    if(msg.command == "USBLLONG")
     {
-        modem_write(raw_msg.raw()+"\r");
-    }
-    else if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_TCP_AS_CLIENT)
-    {
-        modem_write(raw_msg.raw()+"\n");
+        UsbllongMsg usbl;
+
+        usbl.current_time = std::stof(msg.data[0]);
+        usbl.measurement_time = std::stof(msg.data[1]);
+        usbl.remote_address = std::stoi(msg.data[2]);
+        usbl.xyz.x = std::stof(msg.data[3]);
+        usbl.xyz.y = std::stof(msg.data[4]);
+        usbl.xyz.z = std::stof(msg.data[5]);
+        usbl.enu.e = std::stof(msg.data[6]);
+        usbl.enu.n = std::stof(msg.data[7]);
+        usbl.enu.u = std::stof(msg.data[8]);
+        usbl.rpy.roll = std::stof(msg.data[9]);
+        usbl.rpy.pitch = std::stof(msg.data[10]);
+        usbl.rpy.yaw = std::stof(msg.data[11]);
+        usbl.propogation_time = std::stof(msg.data[12]);
+        usbl.rssi = std::stoi(msg.data[13]);
+        usbl.integrity = std::stoi(msg.data[14]);
+        usbl.accuracy = std::stof(msg.data[15]);
+
+        if(usbl_callback_)
+        {
+            usbl_callback_(usbl);
+        }
     }
 
 
