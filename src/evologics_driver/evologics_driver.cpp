@@ -66,9 +66,6 @@ goby::acomms::EvologicsDriver::EvologicsDriver()
 
     decoder_.set_decode_callback(
         std::bind(&EvologicsDriver::on_decode, this, std::placeholders::_1));
-
-    decoder_.decode("+++AT:122:USBLLONG,2738.756694,2738.520424,2,-0.2055,-0.6097,-0.8315,0.8703,-0.5578,0.1920,-1.1680,-0.1894,1.2411,701,-58,161,0.0060\n");
-
 }
 
 goby::acomms::EvologicsDriver::~EvologicsDriver() = default;
@@ -365,7 +362,14 @@ void goby::acomms::EvologicsDriver::evologics_write(const std::string &s)
                             
     signal_raw_outgoing(raw_msg);
 
-    modem_write(raw_msg.raw()+"\r\n");
+    if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_SERIAL)
+    {
+        modem_write(raw_msg.raw()+"\r\n");
+    }
+    else if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_TCP_AS_CLIENT)
+    {
+        modem_write(raw_msg.raw()+"\n");
+    }
 
 
 }
