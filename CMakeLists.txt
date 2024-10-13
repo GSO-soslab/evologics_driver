@@ -19,7 +19,8 @@ find_package(goby 3.1 REQUIRED)
 
 add_library(evologics_driver SHARED
   src/evologics_driver/evologics_driver.cpp
-  src/AT/ATsentence.cpp
+  src/AT/HayesAtDecoder.cpp
+  src/AT/HayesAtEncoder.cpp
 )
 
 target_include_directories(evologics_driver PUBLIC
