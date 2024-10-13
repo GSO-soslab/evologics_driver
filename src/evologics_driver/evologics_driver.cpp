@@ -249,6 +249,8 @@ void goby::acomms::EvologicsDriver::do_work()
     std::string raw_str;
     while (modem_read(&raw_str))
     {
+        raw_str.erase( std::remove(raw_str.begin(), raw_str.end(), '\r'), raw_str.end() );
+        raw_str.erase( std::remove(raw_str.begin(), raw_str.end(), '\n'), raw_str.end() );
 
         glog.is(DEBUG1) && glog << group(glog_out_group()) << "Received: " << raw_str.c_str() << std::endl;
 
@@ -285,7 +287,7 @@ void goby::acomms::EvologicsDriver::process_receive(const std::string& s)
 
     signal_raw_incoming(raw_msg);
 
-    receive_msg_.add_frame(hex_decode(s));
+    receive_msg_.add_frame(s);
 
     signal_receive_and_clear(&receive_msg_);
     
@@ -340,9 +342,7 @@ void goby::acomms::EvologicsDriver::data_transmission(protobuf::ModemTransmissio
 
     if (!(msg->frame_size() == 0 || msg->frame(0).empty()))
     {
-        std::string outgoing = hex_encode(msg->frame(0));
-
-        evologics_write(outgoing);
+        evologics_write(msg->frame(0));
 
     }
     else
