@@ -310,7 +310,7 @@ void goby::acomms::EvologicsDriver::handle_initiate_transmission(const protobuf:
         {
             case protobuf::ModemTransmission::DATA:
             {
-                transmit_msg_.set_max_frame_bytes(500);
+                transmit_msg_.set_max_frame_bytes(1000);
                 signal_data_request(&transmit_msg_);
                 data_transmission(&transmit_msg_); 
                 
