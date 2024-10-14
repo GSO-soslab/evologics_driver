@@ -55,7 +55,7 @@ using namespace goby::util::tcolor;
 using namespace goby::util::logger;
 using namespace goby::util::logger_lock;
 
-const std::string goby::acomms::EvologicsDriver::SERIAL_DELIMITER = "\n";
+const std::string goby::acomms::EvologicsDriver::SERIAL_DELIMITER = "\r\n";
 const std::string goby::acomms::EvologicsDriver::ETHERNET_DELIMITER = "\n";
 
 goby::acomms::EvologicsDriver::EvologicsDriver()
