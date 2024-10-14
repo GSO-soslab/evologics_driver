@@ -368,7 +368,7 @@ void goby::acomms::EvologicsDriver::evologics_write(const std::string &s)
     }
     else if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_TCP_AS_CLIENT)
     {
-        modem_write(raw_msg.raw()+"\n");
+        modem_write(raw_msg.raw()+"\r\n");
     }
 
 
