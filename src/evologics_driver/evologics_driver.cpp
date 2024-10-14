@@ -56,7 +56,7 @@ using namespace goby::util::logger;
 using namespace goby::util::logger_lock;
 
 const std::string goby::acomms::EvologicsDriver::SERIAL_DELIMITER = "\r\n";
-const std::string goby::acomms::EvologicsDriver::ETHERNET_DELIMITER = "\n";
+const std::string goby::acomms::EvologicsDriver::ETHERNET_DELIMITER = "\r\n";
 
 goby::acomms::EvologicsDriver::EvologicsDriver()
 {
@@ -249,8 +249,9 @@ void goby::acomms::EvologicsDriver::do_work()
     std::string raw_str;
     while (modem_read(&raw_str))
     {
-        raw_str.erase( std::remove(raw_str.begin(), raw_str.end(), '\r'), raw_str.end() );
-        raw_str.erase( std::remove(raw_str.begin(), raw_str.end(), '\n'), raw_str.end() );
+        //Pop the last two bytes because they are the \r\n delimeter
+        raw_str.pop_back();
+        raw_str.pop_back();
 
         glog.is(DEBUG1) && glog << group(glog_out_group()) << "Received: " << raw_str.c_str() << std::endl;
 
