@@ -62,7 +62,7 @@ goby::acomms::EvologicsDriver::EvologicsDriver()
 {
 
     encoder_.set_transmit_callback(
-        std::bind(&EvologicsDriver::evologics_write, this, std::placeholders::_1));
+        std::bind(&EvologicsDriver::config_write, this, std::placeholders::_1));
 
     decoder_.set_decode_callback(
         std::bind(&EvologicsDriver::on_decode, this, std::placeholders::_1));
@@ -249,11 +249,10 @@ void goby::acomms::EvologicsDriver::do_work()
     std::string raw_str;
     while (modem_read(&raw_str))
     {
+
         //Pop the last two bytes because they are the \r\n delimeter
         raw_str.pop_back();
         raw_str.pop_back();
-
-        glog.is(DEBUG1) && glog << group(glog_out_group()) << "Received: " << raw_str.c_str() << std::endl;
 
         // try to handle the received message, posting appropriate signals
         try
@@ -264,11 +263,13 @@ void goby::acomms::EvologicsDriver::do_work()
             //if it is not an AT message, then it is comms data
             if(split_index == std::string::npos)
             {
+                glog.is(DEBUG1) && glog << group(glog_out_group()) << "BINARY RX: " << hex_encode(raw_str.c_str()) << std::endl;
                 process_receive(raw_str);
             }
             //it is an AT message
             else
             {
+                glog.is(DEBUG1) && glog << group(glog_out_group()) << "AT COMMAND RX: " << raw_str.c_str() << std::endl;
                 decoder_.decode(raw_str);
             }
         }
@@ -301,8 +302,8 @@ void goby::acomms::EvologicsDriver::handle_initiate_transmission(const protobuf:
 
     try
     {
-        glog.is(DEBUG1) && glog << group(glog_out_group()) << "We were asked to transmit from "
-                                << msg.src() << " to " << msg.dest() << std::endl;
+        // glog.is(DEBUG1) && glog << group(glog_out_group()) << "We were asked to transmit from "
+        //                         << msg.src() << " to " << msg.dest() << std::endl;
 
         signal_modify_transmission(&transmit_msg_);
 
@@ -334,15 +335,13 @@ void goby::acomms::EvologicsDriver::handle_initiate_transmission(const protobuf:
 
 void goby::acomms::EvologicsDriver::data_transmission(protobuf::ModemTransmission* msg)
 {
-    glog.is(DEBUG1) && glog << group(glog_out_group()) << "\tthis is a DATA transmission"
-                        << std::endl;
-
     //do we need to set max frames and bytes for data mode?
     msg->set_max_num_frames(1);
-    msg->set_max_frame_bytes(500);
+    msg->set_max_frame_bytes(1000);
 
     if (!(msg->frame_size() == 0 || msg->frame(0).empty()))
     {
+        
         evologics_write(msg->frame(0));
 
     }
@@ -358,10 +357,10 @@ void goby::acomms::EvologicsDriver::evologics_write(const std::string &s)
 {
     protobuf::ModemRaw raw_msg;
     raw_msg.set_raw(s);
-
-    glog.is(DEBUG1) && glog << group(glog_out_group()) << raw_msg.raw() << std::endl;
                             
     signal_raw_outgoing(raw_msg);
+
+    glog.is(DEBUG1) && glog << group(glog_out_group()) << "BINARY TX: " << hex_encode(s.c_str()) << std::endl;
 
     if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_SERIAL)
     {
@@ -371,8 +370,25 @@ void goby::acomms::EvologicsDriver::evologics_write(const std::string &s)
     {
         modem_write(raw_msg.raw()+"\r\n");
     }
+}
 
+void goby::acomms::EvologicsDriver::config_write(const std::string &s)
+{
+    protobuf::ModemRaw raw_msg;
+    raw_msg.set_raw(s);
+                            
+    signal_raw_outgoing(raw_msg);
 
+    glog.is(DEBUG1) && glog << group(glog_out_group()) << "CONFIG TX: " << s.c_str() << std::endl;
+
+    if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_SERIAL)
+    {
+        modem_write(raw_msg.raw()+"\r\n");
+    }
+    else if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_TCP_AS_CLIENT)
+    {
+        modem_write(raw_msg.raw()+"\n");
+    }
 }
 
 void goby::acomms::EvologicsDriver::on_decode(const hayes::AtMsg msg)

@@ -141,6 +141,7 @@ class EvologicsDriver : public ModemDriverBase
 
     // output
     void evologics_write(const std::string &s); // actually write a message
+    void config_write(const std::string &s); // actually write a message
     void on_decode(const hayes::AtMsg msg);
     void data_transmission(protobuf::ModemTransmission *msg);
 
