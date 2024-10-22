@@ -134,7 +134,18 @@ void goby::acomms::EvologicsDriver::shutdown()
     ModemDriverBase::modem_close();
 }
 
-
+void goby::acomms::EvologicsDriver::extended_notification_on()
+{
+    hayes::AtMsg msg;
+    msg.command = "@ZX1";
+    encoder_.encode(msg);   
+}
+void goby::acomms::EvologicsDriver::extended_notification_off()
+{
+    hayes::AtMsg msg;
+    msg.command = "@ZX0";
+    encoder_.encode(msg);   
+}
 void goby::acomms::EvologicsDriver::set_source_level(int source_level)
 {
     hayes::AtMsg msg;
@@ -418,6 +429,20 @@ void goby::acomms::EvologicsDriver::on_decode(const hayes::AtMsg msg)
         if(usbl_callback_)
         {
             usbl_callback_(usbl);
+        }
+    }
+    if(msg.command == "SENDSTART")
+    {
+        if(transmit_callback_)
+        {
+            transmit_callback_(true);
+        }
+    }
+    if(msg.command == "SENDEND")
+    {
+        if(transmit_callback_)
+        {
+            transmit_callback_(false);
         }
     }
 

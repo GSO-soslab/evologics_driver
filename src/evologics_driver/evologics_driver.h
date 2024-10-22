@@ -80,6 +80,9 @@ class EvologicsDriver : public ModemDriverBase
     typedef std::function<void(UsbllongMsg)> UsblCallback;
     UsblCallback usbl_callback_;
 
+    typedef std::function<void(bool)> TransmitCallback;
+    TransmitCallback transmit_callback_;
+
 
     /// \brief Default constructor.
     EvologicsDriver();
@@ -104,6 +107,10 @@ class EvologicsDriver : public ModemDriverBase
     void handle_initiate_transmission(const protobuf::ModemTransmission& m) override;
 
     bool is_started() const { return startup_done_; }
+
+    void extended_notification_on();
+
+    void extended_notification_off();
 
     void set_source_level(int source_level);
 
@@ -136,6 +143,8 @@ class EvologicsDriver : public ModemDriverBase
     void set_sound_speed(int speed);
 
     void set_usbl_callback(UsblCallback c) { usbl_callback_  = c;}
+
+    void set_transmit_callback(TransmitCallback c) { transmit_callback_ = c;}
 
 
 
