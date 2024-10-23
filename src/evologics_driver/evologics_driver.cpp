@@ -260,29 +260,38 @@ void goby::acomms::EvologicsDriver::do_work()
     std::string raw_str;
     while (modem_read(&raw_str))
     {
-
-        //Pop the last two bytes because they are the \r\n delimeter
         raw_str.pop_back();
         raw_str.pop_back();
-
         // try to handle the received message, posting appropriate signals
         try
         {
-            std::string split_str = "+++";
-            size_t split_index = raw_str.find(split_str);
+            std::string command_str = "+++";
 
-            //if it is not an AT message, then it is comms data
-            if(split_index == std::string::npos)
+            size_t split_index = raw_str.find_first_of(command_str);
+
+            //it is for sure an AT message
+            if(split_index == 0)
             {
-                std::cout << "BINARY RX: " << hex_encode(raw_str) << std::endl;
-                process_receive(raw_str);
-            }
-            //it is an AT message
-            else
-            {
-                std::cout << "AT COMMAND RX: " << raw_str << std::endl;
+                std::cout << "RX: " << raw_str << std::endl;
                 decoder_.decode(raw_str);
             }
+            //this is some combo binary then AT
+            else if(split_index != std::string::npos)
+            {
+                buffer_.append(raw_str.substr(0,split_index));
+                std::cout << "RX: " << raw_str.substr(split_index) << std::endl;
+                decoder_.decode(raw_str.substr(split_index));
+            }
+            else
+            {
+                buffer_.append(raw_str);
+                std::cout << "RX: " << hex_encode(buffer_) << std::endl;
+                
+                process_receive(buffer_);
+                buffer_.clear();                
+            }
+
+
         }
         catch (std::exception& e)
         {
@@ -364,7 +373,7 @@ void goby::acomms::EvologicsDriver::evologics_write(const std::string &s)
                             
     signal_raw_outgoing(raw_msg);
 
-    std::cout << "BINARY TX: " << hex_encode(s) << std::endl;
+    std::cout << "TX: " << hex_encode(s) << std::endl;
 
     if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_SERIAL)
     {
@@ -383,11 +392,11 @@ void goby::acomms::EvologicsDriver::config_write(const std::string &s)
                             
     signal_raw_outgoing(raw_msg);
 
-    std::cout << "CONFIG TX: " << s << std::endl;
+    std::cout << "TX: " << s << std::endl;
 
     if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_SERIAL)
     {
-        modem_write(raw_msg.raw()+"\r\n");
+        modem_write(raw_msg.raw()+"\r");
     }
     else if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_TCP_AS_CLIENT)
     {

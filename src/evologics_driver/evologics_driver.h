@@ -164,7 +164,7 @@ class EvologicsDriver : public ModemDriverBase
 
   private:
     // for the serial connection
-
+    std::string buffer_;
 
     std::string DEFAULT_TCP_SERVER = "192.168.0.209";
     int DEFAULT_TCP_PORT = 9200;
