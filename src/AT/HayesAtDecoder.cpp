@@ -51,12 +51,14 @@ void AtDecoder::decode(const std::string &raw)
         ss << data;
         while (ss.good())
         {
+            vector_size += 1;
             std::string substr;
             getline(ss, substr, ',');
             msg.data.push_back(substr);
-            vector_size += 1;
+            
 
         }
+        vector_size -= 1;
     }
     //else push back all of the data
     else
@@ -78,7 +80,7 @@ void AtDecoder::decode(const std::string &raw)
         }
         else
         {
-            printf("PARSED SIZE DOES NOT MATCH ACTUAL SIZE\n");
+            printf("ERROR!!!!!!!!!PARSED SIZE: %d\t ACTUAL SIZE: %d\n", size, vector_size);
         }
 
     }
