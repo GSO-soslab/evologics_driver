@@ -433,14 +433,14 @@ void goby::acomms::EvologicsDriver::on_decode(const hayes::AtMsg msg)
             usbl_callback_(usbl);
         }
     }
-    if(msg.command == "SENDSTART")
+    else if(msg.command == "SENDSTART")
     {
         if(transmit_callback_)
         {
             transmit_callback_(true);
         }
     }
-    if(msg.command == "SENDEND")
+    else if(msg.command == "SENDEND")
     {
         if(transmit_callback_)
         {
