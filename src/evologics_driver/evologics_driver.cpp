@@ -274,20 +274,19 @@ void goby::acomms::EvologicsDriver::do_work()
             //if it is not an AT message, then it is comms data
             if(split_index == std::string::npos)
             {
-                glog.is(DEBUG1) && glog << group(glog_out_group()) << "BINARY RX: " << hex_encode(raw_str.c_str()) << std::endl;
+                std::cout << "BINARY RX: " << hex_encode(raw_str) << std::endl;
                 process_receive(raw_str);
             }
             //it is an AT message
             else
             {
-                glog.is(DEBUG1) && glog << group(glog_out_group()) << "AT COMMAND RX: " << raw_str.c_str() << std::endl;
+                std::cout << "AT COMMAND RX: " << raw_str << std::endl;
                 decoder_.decode(raw_str);
             }
         }
         catch (std::exception& e)
         {
-            glog.is(DEBUG1) && glog << group(glog_in_group()) << warn
-                                    << "Failed to handle message: " << e.what() << std::endl;
+            std::cout << "Failed to handle message: " << e.what() << std::endl;
         }   
     }
 
@@ -330,17 +329,13 @@ void goby::acomms::EvologicsDriver::handle_initiate_transmission(const protobuf:
             break;
 
             default:
-                glog.is(DEBUG1) && glog << group(glog_out_group()) << warn
-                                        << "Not initiating transmission because we were given an "
-                                           "invalid transmission type for the base Driver:"
-                                        << transmit_msg_ << std::endl;
+                std::cout << "Not initiating transmission because we were given an invalid transmission type for the base Driver:" << transmit_msg_ << std::endl;
                 break;
         }
     }
     catch (ModemDriverException& e)
     {
-        glog.is(DEBUG1) && glog << group(glog_out_group()) << warn
-                                << "Failed to initiate transmission: " << e.what() << std::endl;
+        std::cout << "Failed to initiate transmission: " << e.what() << std::endl;
     }
 }
 
@@ -358,9 +353,7 @@ void goby::acomms::EvologicsDriver::data_transmission(protobuf::ModemTransmissio
     }
     else
     {
-        glog.is(DEBUG1) && glog << group(glog_out_group())
-                                << "Not initiating transmission because we have no data to send"
-                                << std::endl;
+        std::cout << "MAC slot hit but no data to send" << std::endl;
     }
 }
 
@@ -371,7 +364,7 @@ void goby::acomms::EvologicsDriver::evologics_write(const std::string &s)
                             
     signal_raw_outgoing(raw_msg);
 
-    glog.is(DEBUG1) && glog << group(glog_out_group()) << "BINARY TX: " << hex_encode(s.c_str()) << std::endl;
+    std::cout << "BINARY TX: " << hex_encode(s) << std::endl;
 
     if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_SERIAL)
     {
@@ -390,7 +383,7 @@ void goby::acomms::EvologicsDriver::config_write(const std::string &s)
                             
     signal_raw_outgoing(raw_msg);
 
-    glog.is(DEBUG1) && glog << group(glog_out_group()) << "CONFIG TX: " << s.c_str() << std::endl;
+    std::cout << "CONFIG TX: " << s << std::endl;
 
     if(driver_cfg_.connection_type() == protobuf::DriverConfig::CONNECTION_SERIAL)
     {
