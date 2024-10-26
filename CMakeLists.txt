@@ -13,6 +13,7 @@ project(evologics_driver)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
 
+
 find_package(Protobuf REQUIRED)
 find_package(goby 3.1 REQUIRED)
 

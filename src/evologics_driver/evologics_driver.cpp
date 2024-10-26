@@ -447,7 +447,49 @@ void goby::acomms::EvologicsDriver::on_decode(const hayes::AtMsg msg)
             transmit_callback_(false);
         }
     }
+    else if(msg.command == "USBLANGLES")
+    {
+        UsblAnglesMsg angles;
+        angles.current_time = std::stof(msg.data[0]);
+        angles.measurement_time = std::stof(msg.data[1]);
+        angles.remote_address = std::stoi(msg.data[2]);
+        angles.local_bearing = std::stof(msg.data[3]);
+        angles.local_elevation = std::stof(msg.data[4]);
+        angles.bearing = std::stof(msg.data[5]);
+        angles.elevation = std::stof(msg.data[6]);
+        angles.roll = std::stof(msg.data[7]);
+        angles.pitch = std::stof(msg.data[8]);
+        angles.yaw = std::stof(msg.data[9]);
+        angles.rssi = std::stoi(msg.data[10]);
+        angles.integrity = std::stoi(msg.data[11]);
+        angles.accuracy = std::stof(msg.data[12]);
 
+        if(angles_callback_)
+        {
+            angles_callback_(angles);
+        }
+    }
+    else if(msg.command == "USBLPHYD")
+    {
+        UsblPhydMsg phyd;
+        phyd.current_time = std::stof(msg.data[0]);
+        phyd.measurement_time = std::stof(msg.data[1]);
+        phyd.remote_address = std::stoi(msg.data[2]);
+        phyd.fix_type = std::stoi(msg.data[3]);
+        phyd.delay_1_5 = std::stoi(msg.data[4]);
+        phyd.delay_2_5 = std::stoi(msg.data[5]);
+        phyd.delay_3_5 = std::stoi(msg.data[6]);
+        phyd.delay_4_5 = std::stoi(msg.data[7]);
+        phyd.delay_1_2 = std::stoi(msg.data[8]);
+        phyd.delay_4_1 = std::stoi(msg.data[9]);
+        phyd.delay_3_2 = std::stoi(msg.data[10]);
+        phyd.delay_3_4 = std::stoi(msg.data[11]);
+
+        if(phyd_callback_)
+        {
+            phyd_callback_(phyd);
+        }
+    }
 
 }
 
