@@ -76,12 +76,51 @@ class EvologicsDriver : public ModemDriverBase
       float accuracy;
   };
 
+  struct UsblAnglesMsg
+  {
+    float current_time;
+    float measurement_time;
+    int remote_address;
+    float local_bearing;
+    float local_elevation;
+    float bearing;
+    float elevation;
+    float roll;
+    float pitch;
+    float yaw;
+    float rssi;
+    float integrity;
+    float accuracy;
+  };
+
+  struct UsblPhydMsg
+  {
+    float current_time;
+    float measurement_time;
+    int remote_address;
+    bool fix_type;
+    int delay_1_5;
+    int delay_2_5;
+    int delay_3_5;
+    int delay_4_5;
+    int delay_1_2;
+    int delay_4_1;
+    int delay_3_2;
+    int delay_3_4;
+  };
+
 
     typedef std::function<void(UsbllongMsg)> UsblCallback;
     UsblCallback usbl_callback_;
 
     typedef std::function<void(bool)> TransmitCallback;
     TransmitCallback transmit_callback_;
+
+    typedef std::function<void(UsblAnglesMsg)> AnglesCallback;
+    AnglesCallback angles_callback_;
+
+    typedef std::function<void(UsblPhydMsg)> PhydCallback;
+    PhydCallback phyd_callback_;
 
 
     /// \brief Default constructor.
@@ -146,6 +185,9 @@ class EvologicsDriver : public ModemDriverBase
 
     void set_transmit_callback(TransmitCallback c) { transmit_callback_ = c;}
 
+    void set_angles_callback(AnglesCallback c){ angles_callback_ = c;}
+
+    void set_phyd_callback(PhydCallback c){ phyd_callback_ = c;}
 
 
     // output
