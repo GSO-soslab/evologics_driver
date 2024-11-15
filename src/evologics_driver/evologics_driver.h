@@ -64,8 +64,8 @@ class EvologicsDriver : public ModemDriverBase
 
   struct UsbllongMsg
   {
-      float current_time;
-      float measurement_time;
+      double current_time;
+      double measurement_time;
       int remote_address;
       XYZ xyz;
       ENU enu;

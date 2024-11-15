@@ -411,8 +411,8 @@ void goby::acomms::EvologicsDriver::on_decode(const hayes::AtMsg msg)
     {
         UsbllongMsg usbl;
 
-        usbl.current_time = std::stof(msg.data[0]);
-        usbl.measurement_time = std::stof(msg.data[1]);
+        usbl.current_time = std::stod(msg.data[0]);
+        usbl.measurement_time = std::stod(msg.data[1]);
         usbl.remote_address = std::stoi(msg.data[2]);
         usbl.xyz.x = std::stof(msg.data[3]);
         usbl.xyz.y = std::stof(msg.data[4]);
