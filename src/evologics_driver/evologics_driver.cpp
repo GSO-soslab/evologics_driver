@@ -252,6 +252,20 @@ void goby::acomms::EvologicsDriver::set_sound_speed(int speed)
     encoder_.encode(msg);
 }
 
+void goby::acomms::EvologicsDriver::save_settings()
+{
+    hayes::AtMsg msg;
+    msg.command = "&W";
+    encoder_.encode(msg);
+}
+
+void goby::acomms::EvologicsDriver::factory_reset()
+{
+    hayes::AtMsg msg;
+    msg.command = "&F";
+    encoder_.encode(msg);
+}
+
 
 void goby::acomms::EvologicsDriver::do_work()
 {

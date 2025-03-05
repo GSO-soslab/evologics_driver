@@ -181,6 +181,10 @@ class EvologicsDriver : public ModemDriverBase
 
     void set_sound_speed(int speed);
 
+    void save_settings();
+
+    void factory_reset();
+
     void set_usbl_callback(UsblCallback c) { usbl_callback_  = c;}
 
     void set_transmit_callback(TransmitCallback c) { transmit_callback_ = c;}
