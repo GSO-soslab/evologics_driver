@@ -315,8 +315,11 @@ void goby::acomms::EvologicsDriver::do_work()
 
 }   
 
-void goby::acomms::EvologicsDriver::process_receive(const std::string& s)
+void goby::acomms::EvologicsDriver::process_receive(std::string &s)
 {
+
+    if(s.back() == '\n'){ s.pop_back(); }
+
     protobuf::ModemRaw raw_msg;
     raw_msg.set_raw(s);
 

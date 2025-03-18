@@ -201,7 +201,7 @@ class EvologicsDriver : public ModemDriverBase
     void data_transmission(protobuf::ModemTransmission *msg);
 
     // input
-    void process_receive(const std::string& in); // parse a receive message and call proper method
+    void process_receive(std::string &in); // parse a receive message and call proper method
     void process_at_receive(const std::string& in);
 
     void signal_receive_and_clear(protobuf::ModemTransmission* message);
